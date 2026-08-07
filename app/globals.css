@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* Paleta de colores: Café & Milagros */
+    --color-cafe-primario: #5c3a21;
+    --color-cafe-secundario: #8c5a35;
+    --color-cafe-acento: #d97706;
+    
+    --color-milagros-primario: #831843;
+    --color-milagros-secundario: #be185d;
+    --color-milagros-acento: #f43f5e;
+    
+    --fondo-principal: #fcfbf7;
+    --texto-principal: #1f2937;
+  }
+
+  body {
+    background-color: var(--fondo-principal);
+    color: var(--texto-principal);
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  }
+}
+
+/* Efectos de cristal y animaciones personalizadas */
+.efecto-cristal {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.sombra-elegante {
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.08), 0 4px 12px -2px rgba(0, 0, 0, 0.04);
+}
