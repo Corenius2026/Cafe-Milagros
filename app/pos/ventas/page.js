@@ -20,7 +20,7 @@ const VENTAS_PRUEBA = [
     estado: 'completada',
     fecha_venta: new Date().toISOString(),
     detalles_venta: [
-      { id: 'd1', cantidad: 2, precio_unitario: 4500, subtotal: 9000, productos: { nombre: 'Espresso Doble Especial' } },
+      { id: 'd1', cantidad: 2, precio_unitario: 5500, subtotal: 11000, productos: { nombre: 'Café Nutella' } },
       { id: 'd2', cantidad: 1, precio_unitario: 3000, subtotal: 3000, productos: { nombre: 'Agua Manantial' } }
     ]
   },

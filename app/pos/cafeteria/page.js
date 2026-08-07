@@ -14,7 +14,7 @@ import {
 
 // Datos de prueba por defecto en caso de no tener respuesta inicial de la base de datos
 const PRODUCTOS_PRUEBA_CAFETERIA = [
-  { id: 'p1', nombre: 'Espresso Doble Especial', precio_venta: 4500, categoria_id: 'c1', inventario_bodega: [{ stock_actual: 100 }] },
+  { id: 'p1', nombre: 'Café Nutella', precio_venta: 5500, categoria_id: 'c1', inventario_bodega: [{ stock_actual: 100 }] },
   { id: 'p2', nombre: 'Cappuccino de Almendras', precio_venta: 7500, categoria_id: 'c1', inventario_bodega: [{ stock_actual: 80 }] },
   { id: 'p3', nombre: 'Frappé de Caramelo & Crema', precio_venta: 9800, categoria_id: 'c2', inventario_bodega: [{ stock_actual: 60 }] },
   { id: 'p4', nombre: 'Croissant de Almendra', precio_venta: 6000, categoria_id: 'c3', inventario_bodega: [{ stock_actual: 35 }] },

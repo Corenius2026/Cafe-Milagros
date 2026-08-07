@@ -7,7 +7,7 @@ import { obtenerBodegaPorTipo, obtenerCategoriasPorBodega, obtenerProductosEInve
 
 // Respaldo de productos
 const PRODUCTOS_CAFETERIA = [
-  { id: 'p1', nombre: 'Espresso Doble Especial', descripcion: 'Café concentrado de grano origen colombiano', precio_venta: 4500, categoria_id: 'c1' },
+  { id: 'p1', nombre: 'Café Nutella', descripcion: 'Café especial con crema de hazelnut y Nutella artesanal', precio_venta: 5500, categoria_id: 'c1' },
   { id: 'p2', nombre: 'Cappuccino de Almendras', descripcion: 'Espresso con leche de almendras espumada y canela', precio_venta: 7500, categoria_id: 'c1' },
   { id: 'p3', nombre: 'Frappé de Caramelo & Crema', descripcion: 'Bebida helada a base de café con caramelo artesanal', precio_venta: 9800, categoria_id: 'c2' },
   { id: 'p4', nombre: 'Croissant de Almendra', descripcion: 'Masa hojaldrada recién horneada con crema de almendras', precio_venta: 6000, categoria_id: 'c3' }

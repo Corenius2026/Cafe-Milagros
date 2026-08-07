@@ -132,7 +132,7 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.productos (id, bodega_id, categoria_id, sku, codigo_barras, nombre, descripcion, precio_venta, costo, requiere_lote)
 VALUES
-    ('51111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', '31111111-1111-1111-1111-111111111111', 'CAF-ESP-01', '7701001001', 'Espresso Doble Especial', 'Café concentrado de grano origen colombiano', 4500.00, 1200.00, false),
+    ('51111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', '31111111-1111-1111-1111-111111111111', 'CAF-ESP-01', '7701001001', 'Café Nutella', 'Café especial con crema de hazelnut y Nutella artesanal', 5500.00, 1800.00, false),
     ('52222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', '31111111-1111-1111-1111-111111111111', 'CAF-LAT-02', '7701001002', 'Cappuccino de Almendras', 'Espresso con leche de almendras espumada y canela', 7500.00, 2500.00, false),
     ('53333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', '32222222-2222-2222-2222-222222222222', 'CAF-FRA-03', '7701001003', 'Frappé de Caramelo & Crema', 'Bebida helada a base de café con caramelo artesanal', 9800.00, 3200.00, false),
     ('61111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '41111111-1111-1111-1111-111111111111', 'MIL-CHA-01', '7702002001', 'Champú Bio-Reparador Milagros 500ml', 'Fórmula natural para crecimiento capilar', 45000.00, 21000.00, true),
