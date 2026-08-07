@@ -1,5 +1,5 @@
 # Configuración del proyecto Supabase para GitHub Integration
-project_id = "cafe-y-milagros"
+project_id = "fxshgbqdghahbugmnuvs"
 
 [api]
 enabled = true
