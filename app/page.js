@@ -16,8 +16,8 @@ export default function PaginaInicio() {
             <Store className="w-4 h-4 text-amber-700" />
             <span>Sistema Micro-ERP & POS en la Nube</span>
           </div>
-          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight text-stone-900">
-            Café <span className="text-amber-800">&</span> <span className="text-rose-700">Milagros</span>
+          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight">
+            <span className="text-amber-800">Café</span> <span className="text-stone-900">&</span> <span className="text-rose-700">Milagros</span>
           </h1>
           <p className="text-lg text-stone-600 max-w-2xl mx-auto">
             Plataforma integral de gestión multisucursal para <strong>Cafetería</strong> (Caja rápida) y <strong>Tienda de Belleza</strong> (Control de stock y catálogo).

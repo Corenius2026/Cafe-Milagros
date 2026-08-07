@@ -15,7 +15,7 @@ export default function DisenoPanelPOS({ children }) {
           {/* Marca / Logotipo */}
           <div className="px-2 py-3 border-b border-stone-800 flex items-center justify-between">
             <div>
-              <h2 className="font-bold text-white text-lg">Café & Milagros</h2>
+              <h2 className="font-bold text-lg"><span className="text-amber-500">Café</span> <span className="text-white">&</span> <span className="text-rose-400">Milagros</span></h2>
               <p className="text-xs text-amber-500 font-medium">Panel POS & Micro-ERP</p>
             </div>
             <Link href="/" title="Volver al inicio" className="p-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-stone-400 hover:text-white transition-colors">
