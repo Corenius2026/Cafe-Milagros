@@ -123,27 +123,27 @@ ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.categorias (id, bodega_id, nombre, descripcion, icono)
 VALUES
-    ('c1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'Cafés Calientes', 'Espressos, lattes, capuchinos de especialidad', 'Coffee'),
-    ('c2222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'Bebidas Frías', 'Frappés, tés helados y jugos naturales', 'IceCream'),
-    ('c3333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', 'Repostería & Postres', 'Croissants, muffins, tartas artesanales', 'Cake'),
-    ('m1111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 'Cuidado Capilar Milagros', 'Champús, tratamientos nutritivos y mascarillas', 'Sparkles'),
-    ('m2222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', 'Cuidado Facial', 'Serums hidratantes, tónicos y cremas antiedad', 'Smile')
+    ('31111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'Cafés Calientes', 'Espressos, lattes, capuchinos de especialidad', 'Coffee'),
+    ('32222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'Bebidas Frías', 'Frappés, tés helados y jugos naturales', 'IceCream'),
+    ('33333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', 'Repostería & Postres', 'Croissants, muffins, tartas artesanales', 'Cake'),
+    ('41111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 'Cuidado Capilar Milagros', 'Champús, tratamientos nutritivos y mascarillas', 'Sparkles'),
+    ('42222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', 'Cuidado Facial', 'Serums hidratantes, tónicos y cremas antiedad', 'Smile')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.productos (id, bodega_id, categoria_id, sku, codigo_barras, nombre, descripcion, precio_venta, costo, requiere_lote)
 VALUES
-    ('p1111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'c1111111-1111-1111-1111-111111111111', 'CAF-ESP-01', '7701001001', 'Espresso Doble Especial', 'Café concentrado de grano origen colombiano', 4500.00, 1200.00, false),
-    ('p2222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'c1111111-1111-1111-1111-111111111111', 'CAF-LAT-02', '7701001002', 'Cappuccino de Almendras', 'Espresso con leche de almendras espumada y canela', 7500.00, 2500.00, false),
-    ('p3333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', 'c2222222-2222-2222-2222-222222222222', 'CAF-FRA-03', '7701001003', 'Frappé de Caramelo & Crema', 'Bebida helada a base de café con caramelo artesanal', 9800.00, 3200.00, false),
-    ('pm111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 'm1111111-1111-1111-1111-111111111111', 'MIL-CHA-01', '7702002001', 'Champú Bio-Reparador Milagros 500ml', 'Fórmula natural para crecimiento capilar', 45000.00, 21000.00, true),
-    ('pm222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', 'm1111111-1111-1111-1111-111111111111', 'MIL-MAS-02', '7702002002', 'Mascarilla de Frutas Nutritiva 300g', 'Tratamiento intensivo con aceites', 38000.00, 17500.00, true)
+    ('51111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', '31111111-1111-1111-1111-111111111111', 'CAF-ESP-01', '7701001001', 'Espresso Doble Especial', 'Café concentrado de grano origen colombiano', 4500.00, 1200.00, false),
+    ('52222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', '31111111-1111-1111-1111-111111111111', 'CAF-LAT-02', '7701001002', 'Cappuccino de Almendras', 'Espresso con leche de almendras espumada y canela', 7500.00, 2500.00, false),
+    ('53333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', '32222222-2222-2222-2222-222222222222', 'CAF-FRA-03', '7701001003', 'Frappé de Caramelo & Crema', 'Bebida helada a base de café con caramelo artesanal', 9800.00, 3200.00, false),
+    ('61111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '41111111-1111-1111-1111-111111111111', 'MIL-CHA-01', '7702002001', 'Champú Bio-Reparador Milagros 500ml', 'Fórmula natural para crecimiento capilar', 45000.00, 21000.00, true),
+    ('62222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', '41111111-1111-1111-1111-111111111111', 'MIL-MAS-02', '7702002002', 'Mascarilla de Frutas Nutritiva 300g', 'Tratamiento intensivo con aceites', 38000.00, 17500.00, true)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.inventario_bodega (bodega_id, producto_id, stock_actual, stock_minimo, lote, fecha_vencimiento)
 VALUES
-    ('11111111-1111-1111-1111-111111111111', 'p1111111-1111-1111-1111-111111111111', 100, 15, 'GENERAL', NULL),
-    ('11111111-1111-1111-1111-111111111111', 'p2222222-2222-2222-2222-222222222222', 80, 10, 'GENERAL', NULL),
-    ('11111111-1111-1111-1111-111111111111', 'p3333333-3333-3333-3333-333333333333', 60, 10, 'GENERAL', NULL),
-    ('22222222-2222-2222-2222-222222222222', 'pm111111-1111-1111-1111-111111111111', 45, 10, 'LOT-2026-08A', '2028-08-31'),
-    ('22222222-2222-2222-2222-222222222222', 'pm222222-2222-2222-2222-222222222222', 30, 8, 'LOT-2026-08B', '2028-05-15')
+    ('11111111-1111-1111-1111-111111111111', '51111111-1111-1111-1111-111111111111', 100, 15, 'GENERAL', NULL),
+    ('11111111-1111-1111-1111-111111111111', '52222222-2222-2222-2222-222222222222', 80, 10, 'GENERAL', NULL),
+    ('11111111-1111-1111-1111-111111111111', '53333333-3333-3333-3333-333333333333', 60, 10, 'GENERAL', NULL),
+    ('22222222-2222-2222-2222-222222222222', '61111111-1111-1111-1111-111111111111', 45, 10, 'LOT-2026-08A', '2028-08-31'),
+    ('22222222-2222-2222-2222-222222222222', '62222222-2222-2222-2222-222222222222', 30, 8, 'LOT-2026-08B', '2028-05-15')
 ON CONFLICT (producto_id, lote) DO UPDATE SET stock_actual = EXCLUDED.stock_actual;
