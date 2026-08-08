@@ -57,7 +57,7 @@ export default function PaginaInventario() {
   const cargarInventarioMinimarket = async () => {
     setCargando(true);
     try {
-      const bodegaActual = await obtenerBodegaPorTipo('minimarket') || await obtenerBodegaPorTipo('cafeteria');
+      const bodegaActual = await obtenerBodegaPorTipo('minimarket');
       if (bodegaActual) {
         setBodega(bodegaActual);
         const prods = await obtenerProductosEInventarioPorBodega(bodegaActual.id);

@@ -61,7 +61,7 @@ export default function PaginaPOSMinimarket() {
   const cargarDatosMinimarket = async () => {
     setCargandoDatos(true);
     try {
-      const bodegaMinimarket = await obtenerBodegaPorTipo('minimarket') || await obtenerBodegaPorTipo('cafeteria');
+      const bodegaMinimarket = await obtenerBodegaPorTipo('minimarket');
       if (bodegaMinimarket) {
         setBodega(bodegaMinimarket);
         const catsBD = await obtenerCategoriasPorBodega(bodegaMinimarket.id);
