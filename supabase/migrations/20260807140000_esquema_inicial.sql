@@ -147,3 +147,31 @@ VALUES
     ('22222222-2222-2222-2222-222222222222', '61111111-1111-1111-1111-111111111111', 45, 10, 'LOT-2026-08A', '2028-08-31'),
     ('22222222-2222-2222-2222-222222222222', '62222222-2222-2222-2222-222222222222', 30, 8, 'LOT-2026-08B', '2028-05-15')
 ON CONFLICT (producto_id, lote) DO UPDATE SET stock_actual = EXCLUDED.stock_actual;
+
+-- 7. TABLA USUARIOS / PERFILES DE ACCESO
+CREATE TABLE IF NOT EXISTS public.usuarios (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    correo VARCHAR(150) UNIQUE NOT NULL,
+    nombre VARCHAR(150) NOT NULL,
+    rol VARCHAR(30) CHECK (rol IN ('admin', 'nutella', 'milagros')) NOT NULL DEFAULT 'admin',
+    clave_pin VARCHAR(50) DEFAULT '1234',
+    activo BOOLEAN DEFAULT TRUE,
+    fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Permitir lectura publica de usuarios') THEN
+        CREATE POLICY "Permitir lectura publica de usuarios" ON public.usuarios FOR SELECT USING (true);
+    END IF;
+END $$;
+
+INSERT INTO public.usuarios (id, correo, nombre, rol, clave_pin)
+VALUES
+    ('99999999-9999-9999-9999-999999999999', 'admin@cafeymilagros.com', 'Administrador General', 'admin', '1234'),
+    ('88888888-8888-8888-8888-888888888888', 'nutella@cafeymilagros.com', 'Cajero Nutella', 'nutella', '1234'),
+    ('77777777-7777-7777-7777-777777777777', 'milagros@cafeymilagros.com', 'Cajero Milagros', 'milagros', '1234')
+ON CONFLICT (id) DO NOTHING;
+

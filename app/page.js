@@ -1,14 +1,61 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
   Coffee, Sparkles, Package, Receipt, BarChart3, ShieldCheck, ArrowRight, Store, 
-  CheckCircle2, Clock, Zap, HeartHandshake, Layers
+  CheckCircle2, Clock, Zap, HeartHandshake, Layers, LogOut, User
 } from 'lucide-react';
+import { obtenerSesionActiva, cerrarSesionUsuario } from '@/lib/authSession';
 
 /**
  * Página de Inicio Principal de Café & Milagros
- * Diseño personalizado con la identidad visual de la marca (Café de especialidad & Belleza Milagros).
+ * Protegida con guardián de autenticación: si no hay sesión, redirecciona a /login.
+ * Si es usuario Nutella -> va directo a /pos/cafeteria
+ * Si es usuario Milagros -> va directo a /pos/milagros
+ * Si es Admin -> Muestra el panel completo de administración.
  */
 export default function PaginaInicio() {
+  const router = useRouter();
+  const [sesion, setSesion] = useState(null);
+  const [comprobandoSesion, setComprobandoSesion] = useState(true);
+
+  useEffect(() => {
+    const sesionActual = obtenerSesionActiva();
+
+    if (!sesionActual) {
+      // Redireccionar al login si no hay sesión iniciada
+      router.push('/login');
+    } else if (sesionActual.rol === 'nutella') {
+      // Redireccionar directo al POS Nutella
+      router.push('/pos/cafeteria');
+    } else if (sesionActual.rol === 'milagros') {
+      // Redireccionar directo al POS Milagros
+      router.push('/pos/milagros');
+    } else {
+      // Rol Admin: Muestra el panel completo
+      setSesion(sesionActual);
+      setComprobandoSesion(false);
+    }
+  }, [router]);
+
+  const manejarCerrarSesion = () => {
+    cerrarSesionUsuario();
+    router.push('/login');
+  };
+
+  if (comprobandoSesion) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-stone-100 antialiased">
+        <div className="text-center space-y-4">
+          <div className="w-12 h-12 border-4 border-amber-800 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-sm text-stone-700 font-bold">Verificando acceso a Café & Milagros...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen flex flex-col justify-between bg-gradient-to-br from-amber-50/80 via-stone-50 to-rose-50/80 antialiased selection:bg-amber-200">
       
@@ -23,21 +70,30 @@ export default function PaginaInicio() {
               <h1 className="text-xl font-bold tracking-tight">
                 <span className="text-amber-800 font-extrabold">Café</span> <span className="text-stone-900 font-black">&</span> <span className="text-rose-700 font-extrabold">Milagros</span>
               </h1>
-              <p className="text-[11px] text-stone-500 font-medium">Sistema Micro-ERP & POS Multisucursal</p>
+              <p className="text-[11px] text-stone-500 font-medium">Panel Administrador General</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200 shadow-sm">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>Supabase Conectado</span>
+              <span>Supabase DB Conectado</span>
             </div>
-            <Link 
-              href="/pos/cafeteria" 
-              className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold transition-all shadow-sm hover:shadow"
-            >
-              Ir a POS
-            </Link>
+
+            <div className="flex items-center gap-2 border-l border-stone-200 pl-3">
+              <div className="text-right hidden md:block">
+                <p className="text-xs font-bold text-stone-900">{sesion?.nombre || 'Administrador'}</p>
+                <p className="text-[10px] text-amber-700 font-semibold uppercase">Acceso Total</p>
+              </div>
+              <button
+                onClick={manejarCerrarSesion}
+                title="Cerrar Sesión"
+                className="p-2 rounded-xl bg-stone-100 hover:bg-rose-100 text-stone-700 hover:text-rose-700 transition-colors flex items-center gap-1 text-xs font-semibold"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden sm:inline">Salir</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -48,17 +104,17 @@ export default function PaginaInicio() {
         {/* Banner Hero Principal */}
         <div className="text-center space-y-4 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-100 via-stone-100 to-rose-100 text-stone-800 text-xs font-semibold border border-stone-200/80 shadow-sm">
-            <Store className="w-4 h-4 text-amber-700" />
-            <span>Gestión Integral Multisucursal en la Nube</span>
+            <ShieldCheck className="w-4 h-4 text-amber-700" />
+            <span>Sesión Administrador Activa</span>
           </div>
 
           <h2 className="text-4xl sm:text-6xl font-black tracking-tight text-stone-900 leading-tight">
-            Bienvenido a <br className="sm:hidden" />
+            Panel de Control <br className="sm:hidden" />
             <span className="text-amber-800">Café</span> <span className="text-stone-900">&</span> <span className="text-rose-700">Milagros</span>
           </h2>
 
           <p className="text-base sm:text-lg text-stone-600 font-normal leading-relaxed max-w-2xl mx-auto">
-            Plataforma unificada para la administración de caja rápida en <strong>Cafetería</strong> y el control especializado de inventario y lotes en la <strong>Tienda de Belleza Milagros</strong>.
+            Acceso completo a la gestión de cajas registradoras POS, control de stock por bodegas e historial de ventas multisucursal.
           </p>
         </div>
 
@@ -169,7 +225,7 @@ export default function PaginaInicio() {
                 <Package className="w-6 h-6" />
               </div>
               <div>
-                <h5 className="font-bold text-stone-900 text-sm">Inventario de Bodegas</h5>
+                <h5 className="font-bold text-stone-900 text-sm">Inventario Bodegas</h5>
                 <p className="text-xs text-stone-500">Control de stock y alertas</p>
               </div>
             </Link>
