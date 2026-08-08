@@ -4,14 +4,14 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
-  ShieldCheck, ArrowLeft, Lock, CheckCircle2, KeyRound, ArrowRight, Store
+  ShoppingBag, ArrowLeft, Lock, CheckCircle2, KeyRound, ArrowRight, Store
 } from 'lucide-react';
 import { iniciarSesionUsuario } from '@/lib/authSession';
 import { autenticarUsuarioPorCorreoYClave } from '@/lib/serviciosSupabase';
 
 /**
- * Página de Inicio de Sesión Limpia
- * Determina automáticamente el Rol y la pantalla según las credenciales ingresadas.
+ * Página de Inicio de Sesión Limpia para Minimarket
+ * Determina automáticamente si es Administrador o Cajero según credenciales.
  */
 export default function PaginaInicioSesion() {
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function PaginaInicioSesion() {
           rol: usuarioDB.rol,
           nombre: usuarioDB.nombre,
           correo: usuarioDB.correo,
-          rutaDestino: usuarioDB.rol === 'nutella' ? '/pos/cafeteria' : usuarioDB.rol === 'milagros' ? '/pos/milagros' : '/'
+          rutaDestino: usuarioDB.rol === 'cajero' ? '/pos/minimarket' : '/'
         };
       }
     } catch (err) {
@@ -50,14 +50,10 @@ export default function PaginaInicioSesion() {
       let nombre = 'Administrador General';
       let rutaDestino = '/';
 
-      if (correoLower.includes('nutella') || correoLower.includes('cafeteria')) {
-        rol = 'nutella';
-        nombre = 'Cajero Nutella / Cafetería';
-        rutaDestino = '/pos/cafeteria';
-      } else if (correoLower.includes('milagros') || correoLower.includes('belleza')) {
-        rol = 'milagros';
-        nombre = 'Cajero Productos Milagros';
-        rutaDestino = '/pos/milagros';
+      if (correoLower.includes('cajero') || correoLower.includes('caja') || correoLower.includes('pos')) {
+        rol = 'cajero';
+        nombre = 'Cajero Minimarket';
+        rutaDestino = '/pos/minimarket';
       }
 
       perfilFinal = { rol, nombre, correo, rutaDestino };
@@ -73,44 +69,44 @@ export default function PaginaInicioSesion() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50/80 via-stone-100 to-rose-50/80 px-4 py-12 antialiased">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50/80 via-slate-50 to-blue-50/80 px-4 py-12 antialiased">
       <div className="max-w-md w-full space-y-6">
         
         {/* Enlace Volver */}
         <div className="flex items-center justify-between">
           <Link 
             href="/" 
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/80 hover:bg-white text-stone-700 text-xs font-semibold border border-stone-200 shadow-sm transition-all"
+            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/80 hover:bg-white text-slate-700 text-xs font-semibold border border-slate-200 shadow-sm transition-all"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Volver</span>
           </Link>
 
-          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-stone-900 text-white shadow-sm flex items-center gap-1.5">
+          <span className="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-900 text-white shadow-sm flex items-center gap-1.5">
             <Store className="w-3.5 h-3.5" />
-            Acceso Autorizado
+            Minimarket POS
           </span>
         </div>
 
         {/* Tarjeta de Formulario Principal */}
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl border border-stone-200/80 space-y-6">
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200/80 space-y-6">
           
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-800 to-rose-600 text-white mx-auto flex items-center justify-center shadow-lg font-black text-2xl">
-              CM
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-700 text-white mx-auto flex items-center justify-center shadow-lg font-black text-2xl">
+              <ShoppingBag className="w-7 h-7" />
             </div>
-            <h1 className="text-2xl font-black text-stone-900 tracking-tight">
-              Iniciar Sesión
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              Iniciar Sesión <span className="text-emerald-600">Minimarket</span>
             </h1>
-            <p className="text-xs text-stone-500">
-              Ingresa tus credenciales para acceder a tu sucursal o panel
+            <p className="text-xs text-slate-500">
+              Ingresa tus credenciales para acceder a la caja o al panel administrativo
             </p>
           </div>
 
           {/* Formulario de Credenciales */}
           <form onSubmit={manejarLogin} className="space-y-4 pt-2">
             <div>
-              <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                 Correo Electrónico o Usuario
               </label>
               <input 
@@ -118,13 +114,13 @@ export default function PaginaInicioSesion() {
                 value={correo}
                 onChange={(e) => setCorreo(e.target.value)}
                 required
-                placeholder="admin@cafeymilagros.com"
-                className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-600 text-sm bg-stone-50/50"
+                placeholder="admin@minimarket.com"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm bg-slate-50/50"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
                 Contraseña o PIN
               </label>
               <div className="relative">
@@ -134,9 +130,9 @@ export default function PaginaInicioSesion() {
                   onChange={(e) => setClave(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="w-full px-4 py-3 rounded-xl border border-stone-300 focus:outline-none focus:ring-2 focus:ring-amber-600 text-sm bg-stone-50/50"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm bg-slate-50/50"
                 />
-                <KeyRound className="w-4 h-4 text-stone-400 absolute right-4 top-3.5" />
+                <KeyRound className="w-4 h-4 text-slate-400 absolute right-4 top-3.5" />
               </div>
             </div>
 
@@ -151,7 +147,7 @@ export default function PaginaInicioSesion() {
             <button 
               type="submit" 
               disabled={cargando}
-              className="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-stone-900 hover:bg-black shadow-lg transition-all flex items-center justify-center gap-2"
+              className="w-full py-3.5 rounded-xl font-bold text-sm text-white bg-emerald-700 hover:bg-emerald-800 shadow-lg transition-all flex items-center justify-center gap-2"
             >
               <span>{cargando ? 'Ingresando...' : 'Iniciar Sesión'}</span>
               <ArrowRight className="w-4 h-4" />
@@ -159,11 +155,10 @@ export default function PaginaInicioSesion() {
           </form>
 
           {/* Guía rápida de credenciales para prueba */}
-          <div className="pt-3 border-t border-stone-100 text-center text-[11px] text-stone-400 space-y-1">
-            <p className="font-semibold text-stone-500">Ejemplos de acceso (PIN: 1234):</p>
-            <p>👑 Admin: <strong className="text-stone-700">admin@cafeymilagros.com</strong></p>
-            <p>☕ Nutella: <strong className="text-amber-800">nutella@cafeymilagros.com</strong></p>
-            <p>🌸 Milagros: <strong className="text-rose-700">milagros@cafeymilagros.com</strong></p>
+          <div className="pt-3 border-t border-slate-100 text-center text-[11px] text-slate-400 space-y-1">
+            <p className="font-semibold text-slate-500">Ejemplos de acceso (PIN: 1234):</p>
+            <p>👑 Admin: <strong className="text-slate-800">admin@minimarket.com</strong></p>
+            <p>🛒 Cajero: <strong className="text-emerald-700">cajero@minimarket.com</strong></p>
           </div>
 
         </div>

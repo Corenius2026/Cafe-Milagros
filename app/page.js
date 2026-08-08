@@ -4,17 +4,16 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  Coffee, Sparkles, Package, Receipt, BarChart3, ShieldCheck, ArrowRight, Store, 
-  CheckCircle2, Clock, Zap, HeartHandshake, Layers, LogOut, User
+  ShoppingCart, Package, Receipt, BarChart3, ShieldCheck, ArrowRight, Store, 
+  CheckCircle2, Zap, Layers, LogOut, Tag, Barcode
 } from 'lucide-react';
 import { obtenerSesionActiva, cerrarSesionUsuario } from '@/lib/authSession';
 
 /**
- * Página de Inicio Principal de Café & Milagros
+ * Página de Inicio Principal para el Minimarket
  * Protegida con guardián de autenticación: si no hay sesión, redirecciona a /login.
- * Si es usuario Nutella -> va directo a /pos/cafeteria
- * Si es usuario Milagros -> va directo a /pos/milagros
- * Si es Admin -> Muestra el panel completo de administración.
+ * Si es usuario Cajero -> va directo a /pos/minimarket
+ * Si es Admin -> Muestra el panel completo de administración del Minimarket.
  */
 export default function PaginaInicio() {
   const router = useRouter();
@@ -27,12 +26,9 @@ export default function PaginaInicio() {
     if (!sesionActual) {
       // Redireccionar al login si no hay sesión iniciada
       router.push('/login');
-    } else if (sesionActual.rol === 'nutella') {
-      // Redireccionar directo al POS Nutella
-      router.push('/pos/cafeteria');
-    } else if (sesionActual.rol === 'milagros') {
-      // Redireccionar directo al POS Milagros
-      router.push('/pos/milagros');
+    } else if (sesionActual.rol === 'cajero') {
+      // Redireccionar directo a la caja del Minimarket
+      router.push('/pos/minimarket');
     } else {
       // Rol Admin: Muestra el panel completo
       setSesion(sesionActual);
@@ -47,30 +43,30 @@ export default function PaginaInicio() {
 
   if (comprobandoSesion) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-stone-100 antialiased">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-100 antialiased">
         <div className="text-center space-y-4">
-          <div className="w-12 h-12 border-4 border-amber-800 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-sm text-stone-700 font-bold">Verificando acceso a Café & Milagros...</p>
+          <div className="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-sm text-slate-700 font-bold">Verificando acceso a Minimarket...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen flex flex-col justify-between bg-gradient-to-br from-amber-50/80 via-stone-50 to-rose-50/80 antialiased selection:bg-amber-200">
+    <main className="min-h-screen flex flex-col justify-between bg-gradient-to-br from-emerald-50/70 via-slate-50 to-blue-50/70 antialiased selection:bg-emerald-200">
       
       {/* Barra de Encabezado Superior */}
-      <header className="w-full border-b border-stone-200/60 bg-white/70 backdrop-blur-md sticky top-0 z-50">
+      <header className="w-full border-b border-slate-200/60 bg-white/70 backdrop-blur-md sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-800 to-rose-600 flex items-center justify-center shadow-md text-white font-black text-xl">
-              CM
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-700 flex items-center justify-center shadow-md text-white font-black text-xl">
+              <Store className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight">
-                <span className="text-amber-800 font-extrabold">Café</span> <span className="text-stone-900 font-black">&</span> <span className="text-rose-700 font-extrabold">Milagros</span>
+              <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <span>Minimarket</span> <span className="text-emerald-600 font-extrabold">POS</span>
               </h1>
-              <p className="text-[11px] text-stone-500 font-medium">Panel Administrador General</p>
+              <p className="text-[11px] text-slate-500 font-medium">Panel Administrador de Tienda</p>
             </div>
           </div>
 
@@ -80,15 +76,15 @@ export default function PaginaInicio() {
               <span>Supabase DB Conectado</span>
             </div>
 
-            <div className="flex items-center gap-2 border-l border-stone-200 pl-3">
+            <div className="flex items-center gap-2 border-l border-slate-200 pl-3">
               <div className="text-right hidden md:block">
-                <p className="text-xs font-bold text-stone-900">{sesion?.nombre || 'Administrador'}</p>
-                <p className="text-[10px] text-amber-700 font-semibold uppercase">Acceso Total</p>
+                <p className="text-xs font-bold text-slate-900">{sesion?.nombre || 'Administrador'}</p>
+                <p className="text-[10px] text-emerald-700 font-semibold uppercase">Acceso Total</p>
               </div>
               <button
                 onClick={manejarCerrarSesion}
                 title="Cerrar Sesión"
-                className="p-2 rounded-xl bg-stone-100 hover:bg-rose-100 text-stone-700 hover:text-rose-700 transition-colors flex items-center gap-1 text-xs font-semibold"
+                className="p-2 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-700 hover:text-rose-700 transition-colors flex items-center gap-1 text-xs font-semibold"
               >
                 <LogOut className="w-4 h-4" />
                 <span className="hidden sm:inline">Salir</span>
@@ -99,118 +95,63 @@ export default function PaginaInicio() {
       </header>
 
       {/* Cuerpo Principal */}
-      <section className="max-w-6xl mx-auto px-4 py-10 w-full space-y-12 flex-1 flex flex-col justify-center">
+      <section className="max-w-5xl mx-auto px-4 py-10 w-full space-y-10 flex-1 flex flex-col justify-center">
         
         {/* Banner Hero Principal */}
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-amber-100 via-stone-100 to-rose-100 text-stone-800 text-xs font-semibold border border-stone-200/80 shadow-sm">
-            <ShieldCheck className="w-4 h-4 text-amber-700" />
-            <span>Sesión Administrador Activa</span>
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-100 via-slate-100 to-blue-100 text-slate-800 text-xs font-semibold border border-slate-200/80 shadow-sm">
+            <ShieldCheck className="w-4 h-4 text-emerald-700" />
+            <span>Sistema Integral de Gestión de Minimarket</span>
           </div>
 
-          <h2 className="text-4xl sm:text-6xl font-black tracking-tight text-stone-900 leading-tight">
-            Panel de Control <br className="sm:hidden" />
-            <span className="text-amber-800">Café</span> <span className="text-stone-900">&</span> <span className="text-rose-700">Milagros</span>
+          <h2 className="text-4xl sm:text-5xl font-black tracking-tight text-slate-900 leading-tight">
+            Panel de Control <br />
+            <span className="text-emerald-600">Tienda Minimarket</span>
           </h2>
 
-          <p className="text-base sm:text-lg text-stone-600 font-normal leading-relaxed max-w-2xl mx-auto">
-            Acceso completo a la gestión de cajas registradoras POS, control de stock por bodegas e historial de ventas multisucursal.
+          <p className="text-base text-slate-600 font-normal leading-relaxed max-w-2xl mx-auto">
+            Control de caja registradora, facturación con lector de código de barras, seguimiento de stock e historial de ventas en tiempo real.
           </p>
         </div>
 
-        {/* Módulos Principales de Sucursal (Cajas POS) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Tarjeta Principal de Acceso a Caja POS */}
+        <div className="relative group bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-emerald-200/80 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden max-w-2xl mx-auto w-full">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
           
-          {/* Tarjeta Sucursal 1: Cafetería */}
-          <div className="relative group bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-amber-200/80 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl group-hover:bg-amber-500/20 transition-all"></div>
-            
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-amber-800 text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                  <Coffee className="w-7 h-7" />
-                </div>
-                <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold uppercase tracking-wider">
-                  Caja Rápida POS
-                </span>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform shrink-0">
+                <ShoppingCart className="w-8 h-8" />
               </div>
-
-              <h3 className="text-2xl font-bold text-stone-900 mb-2">Sucursal Cafetería</h3>
-              <p className="text-stone-600 text-sm leading-relaxed mb-6">
-                Cobro ágil para menú de cafés de especialidad (incluyendo nuestro reconocido <strong>Café Nutella</strong>), bebidas frías, frappés y repostería artesanal.
-              </p>
-
-              <div className="space-y-2 mb-8">
-                <div className="flex items-center gap-2 text-xs font-medium text-amber-900/80">
-                  <CheckCircle2 className="w-4 h-4 text-amber-700" />
-                  <span>Facturación y emisión inmediata de recibos</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-medium text-amber-900/80">
-                  <CheckCircle2 className="w-4 h-4 text-amber-700" />
-                  <span>Descuento en tiempo real de insumos de barra</span>
-                </div>
+              <div>
+                <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 text-xs font-bold uppercase tracking-wider inline-block mb-1">
+                  Caja Principal POS
+                </span>
+                <h3 className="text-2xl font-black text-slate-900">Punto de Venta Minimarket</h3>
+                <p className="text-slate-500 text-xs mt-1">
+                  Cobro ágil, lector de código de barras y emisión inmediata de recibos
+                </p>
               </div>
             </div>
 
             <Link 
-              href="/pos/cafeteria"
-              className="w-full py-3.5 px-5 rounded-2xl bg-amber-800 hover:bg-amber-900 text-white font-semibold flex items-center justify-between text-sm transition-all shadow-md group-hover:shadow-lg"
+              href="/pos/minimarket"
+              className="w-full sm:w-auto py-3.5 px-6 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold flex items-center justify-center gap-2 text-sm transition-all shadow-md group-hover:shadow-lg whitespace-nowrap"
             >
-              <span>Abrir POS Cafetería</span>
+              <span>Abrir POS Minimarket</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
-
-          {/* Tarjeta Sucursal 2: Tienda de Belleza Milagros */}
-          <div className="relative group bg-white/90 backdrop-blur-xl rounded-3xl p-8 border border-rose-200/80 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col justify-between overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-rose-500/10 rounded-full blur-2xl group-hover:bg-rose-500/20 transition-all"></div>
-            
-            <div>
-              <div className="flex items-center justify-between mb-6">
-                <div className="w-14 h-14 rounded-2xl bg-rose-700 text-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-                  <Sparkles className="w-7 h-7" />
-                </div>
-                <span className="px-3 py-1 rounded-full bg-rose-100 text-rose-900 text-xs font-bold uppercase tracking-wider">
-                  Control de Lotes & Belleza
-                </span>
-              </div>
-
-              <h3 className="text-2xl font-bold text-stone-900 mb-2">Tienda de Belleza / Milagros</h3>
-              <p className="text-stone-600 text-sm leading-relaxed mb-6">
-                Venta por catálogo de cosmética, tratamientos capilares, cuidado facial y kits con control detallado de números de lote y vencimientos.
-              </p>
-
-              <div className="space-y-2 mb-8">
-                <div className="flex items-center gap-2 text-xs font-medium text-rose-900/80">
-                  <CheckCircle2 className="w-4 h-4 text-rose-600" />
-                  <span>Seguimiento de lotes y fechas de vencimiento</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs font-medium text-rose-900/80">
-                  <CheckCircle2 className="w-4 h-4 text-rose-600" />
-                  <span>Filtro por líneas capilares y faciales</span>
-                </div>
-              </div>
-            </div>
-
-            <Link 
-              href="/pos/milagros"
-              className="w-full py-3.5 px-5 rounded-2xl bg-rose-700 hover:bg-rose-800 text-white font-semibold flex items-center justify-between text-sm transition-all shadow-md group-hover:shadow-lg"
-            >
-              <span>Abrir POS Productos Milagros</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
         </div>
 
         {/* Sección de Módulos Operativos (Inventario, Ventas, Reportes) */}
-        <div className="bg-white/70 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-stone-200/80 shadow-md">
+        <div className="bg-white/70 backdrop-blur-md rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-md">
           <div className="mb-6 flex items-center justify-between">
             <div>
-              <h4 className="text-lg font-bold text-stone-900">Módulos Administrativos & Operaciones</h4>
-              <p className="text-xs text-stone-500">Gestión unificada multisucursal en tiempo real</p>
+              <h4 className="text-lg font-bold text-slate-900">Gestión de Inventario & Reportes</h4>
+              <p className="text-xs text-slate-500">Módulos administrativos en tiempo real</p>
             </div>
-            <div className="p-2 rounded-xl bg-stone-100 text-stone-700">
+            <div className="p-2 rounded-xl bg-slate-100 text-slate-700">
               <Layers className="w-5 h-5" />
             </div>
           </div>
@@ -219,40 +160,40 @@ export default function PaginaInicio() {
             
             <Link 
               href="/pos/inventario"
-              className="p-4 rounded-2xl bg-stone-50 hover:bg-amber-50/60 border border-stone-200/60 hover:border-amber-200 transition-all flex items-center gap-4 group"
+              className="p-4 rounded-2xl bg-slate-50 hover:bg-emerald-50/60 border border-slate-200/60 hover:border-emerald-200 transition-all flex items-center gap-4 group"
             >
-              <div className="p-3 rounded-xl bg-amber-100 text-amber-800 group-hover:scale-105 transition-transform">
+              <div className="p-3 rounded-xl bg-emerald-100 text-emerald-800 group-hover:scale-105 transition-transform">
                 <Package className="w-6 h-6" />
               </div>
               <div>
-                <h5 className="font-bold text-stone-900 text-sm">Inventario Bodegas</h5>
-                <p className="text-xs text-stone-500">Control de stock y alertas</p>
+                <h5 className="font-bold text-slate-900 text-sm">Inventario de Bodega</h5>
+                <p className="text-xs text-slate-500">Control de stock y repuestos</p>
               </div>
             </Link>
 
             <Link 
               href="/pos/ventas"
-              className="p-4 rounded-2xl bg-stone-50 hover:bg-rose-50/60 border border-stone-200/60 hover:border-rose-200 transition-all flex items-center gap-4 group"
+              className="p-4 rounded-2xl bg-slate-50 hover:bg-blue-50/60 border border-slate-200/60 hover:border-blue-200 transition-all flex items-center gap-4 group"
             >
-              <div className="p-3 rounded-xl bg-rose-100 text-rose-800 group-hover:scale-105 transition-transform">
+              <div className="p-3 rounded-xl bg-blue-100 text-blue-800 group-hover:scale-105 transition-transform">
                 <Receipt className="w-6 h-6" />
               </div>
               <div>
-                <h5 className="font-bold text-stone-900 text-sm">Historial de Ventas</h5>
-                <p className="text-xs text-stone-500">Facturación y recibos</p>
+                <h5 className="font-bold text-slate-900 text-sm">Historial de Ventas</h5>
+                <p className="text-xs text-slate-500">Facturas y recibos emitidos</p>
               </div>
             </Link>
 
             <Link 
               href="/pos/reportes"
-              className="p-4 rounded-2xl bg-stone-50 hover:bg-stone-100 border border-stone-200/60 hover:border-stone-300 transition-all flex items-center gap-4 group"
+              className="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200/60 hover:border-slate-300 transition-all flex items-center gap-4 group"
             >
-              <div className="p-3 rounded-xl bg-stone-200 text-stone-800 group-hover:scale-105 transition-transform">
+              <div className="p-3 rounded-xl bg-slate-200 text-slate-800 group-hover:scale-105 transition-transform">
                 <BarChart3 className="w-6 h-6" />
               </div>
               <div>
-                <h5 className="font-bold text-stone-900 text-sm">Reportes & Cierre</h5>
-                <p className="text-xs text-stone-500">Arqueo diario y métricas</p>
+                <h5 className="font-bold text-slate-900 text-sm">Reportes & Cierre</h5>
+                <p className="text-xs text-slate-500">Arqueo diario e ingresos</p>
               </div>
             </Link>
 
@@ -262,12 +203,10 @@ export default function PaginaInicio() {
       </section>
 
       {/* Pie de Página */}
-      <footer className="w-full border-t border-stone-200/60 bg-white/50 backdrop-blur-sm py-6">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-stone-500">
+      <footer className="w-full border-t border-slate-200/60 bg-white/50 backdrop-blur-sm py-6">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-amber-800">Café</span>
-            <span className="font-black text-stone-900">&</span>
-            <span className="font-bold text-rose-700">Milagros</span>
+            <span className="font-black text-slate-900">Minimarket POS</span>
             <span>© 2026. Todos los derechos reservados.</span>
           </div>
 

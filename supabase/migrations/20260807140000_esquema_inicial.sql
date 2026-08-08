@@ -1,25 +1,25 @@
 -- ==============================================================================
--- MIGRACIÓN INICIAL AUTOMÁTICA PARA SUPABASE GITHUB INTEGRATION
--- Proyecto: Café & Milagros (Micro-ERP y POS Multisucursal)
+-- MIGRACIÓN INICIAL PARA MINIMARKET POS & MICRO-ERP
+-- Proyecto: Minimarket POS
 -- ==============================================================================
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- 1. TABLA BODEGAS
+-- 1. TABLA BODEGAS / TIENDAS
 CREATE TABLE IF NOT EXISTS public.bodegas (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     codigo VARCHAR(20) UNIQUE NOT NULL,
     nombre VARCHAR(100) NOT NULL,
-    tipo VARCHAR(30) CHECK (tipo IN ('cafeteria', 'milagros')) NOT NULL,
+    tipo VARCHAR(30) CHECK (tipo IN ('minimarket', 'cafeteria', 'milagros')) NOT NULL DEFAULT 'minimarket',
     descripcion TEXT,
     activa BOOLEAN DEFAULT TRUE,
     fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 2. TABLA CATEGORÍAS
+-- 2. TABLA CATEGORÍAS DE PRODUCTO
 CREATE TABLE IF NOT EXISTS public.categorias (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    bodega_id UUID NOT NULL REFERENCES public.bodegas(id) ON DELETE CASCADE,
+    bodega_id UUID REFERENCES public.bodegas(id) ON DELETE CASCADE,
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
     icono VARCHAR(50) DEFAULT 'Package',
@@ -91,7 +91,7 @@ ALTER TABLE public.inventario_bodega ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ventas ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.detalles_venta ENABLE ROW LEVEL SECURITY;
 
--- POLÍTICAS DE LECTURA PÚBLICA (Evitar errores si ya existen)
+-- POLÍTICAS DE LECTURA PÚBLICA
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Permitir lectura publica de bodegas') THEN
@@ -114,64 +114,32 @@ BEGIN
     END IF;
 END $$;
 
--- DATOS INICIALES
+-- DATOS INICIALES DEL MINIMARKET
 INSERT INTO public.bodegas (id, codigo, nombre, tipo, descripcion)
 VALUES 
-    ('11111111-1111-1111-1111-111111111111', 'BOD-CAF-01', 'Cafetería Central', 'cafeteria', 'Sucursal de caja rápida para venta de bebidas, repostería y desayunos'),
-    ('22222222-2222-2222-2222-222222222222', 'BOD-MIL-01', 'Tienda Productos Milagros', 'milagros', 'Sucursal para catálogo de cosméticos, tratamiento capilar y belleza')
+    ('11111111-1111-1111-1111-111111111111', 'BOD-MINI-01', 'Minimarket Principal', 'minimarket', 'Punto de venta y bodega principal de minimarket')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.categorias (id, bodega_id, nombre, descripcion, icono)
 VALUES
-    ('31111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'Cafés Calientes', 'Espressos, lattes, capuchinos de especialidad', 'Coffee'),
-    ('32222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'Bebidas Frías', 'Frappés, tés helados y jugos naturales', 'IceCream'),
-    ('33333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', 'Repostería & Postres', 'Croissants, muffins, tartas artesanales', 'Cake'),
-    ('41111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', 'Cuidado Capilar Milagros', 'Champús, tratamientos nutritivos y mascarillas', 'Sparkles'),
-    ('42222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', 'Cuidado Facial', 'Serums hidratantes, tónicos y cremas antiedad', 'Smile')
+    ('31111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', 'Lácteos & Huevos', 'Leche, quesos, yogures y derivados', 'Milk'),
+    ('32222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', 'Bebidas & Jugos', 'Gaseosas, jugos, agua mineral y bebidas heladas', 'Coffee'),
+    ('33333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', 'Abarrotes & Despensa', 'Arroz, aceite, azúcar, granos y enlatados', 'Package'),
+    ('34444444-4444-4444-4444-444444444444', '11111111-1111-1111-1111-111111111111', 'Snacks & Papas', 'Papas fritas, galletas y pasabocas', 'Smile')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.productos (id, bodega_id, categoria_id, sku, codigo_barras, nombre, descripcion, precio_venta, costo, requiere_lote)
 VALUES
-    ('51111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', '31111111-1111-1111-1111-111111111111', 'CAF-ESP-01', '7701001001', 'Café Nutella', 'Café especial con crema de hazelnut y Nutella artesanal', 5500.00, 1800.00, false),
-    ('52222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', '31111111-1111-1111-1111-111111111111', 'CAF-LAT-02', '7701001002', 'Cappuccino de Almendras', 'Espresso con leche de almendras espumada y canela', 7500.00, 2500.00, false),
-    ('53333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', '32222222-2222-2222-2222-222222222222', 'CAF-FRA-03', '7701001003', 'Frappé de Caramelo & Crema', 'Bebida helada a base de café con caramelo artesanal', 9800.00, 3200.00, false),
-    ('61111111-1111-1111-1111-111111111111', '22222222-2222-2222-2222-222222222222', '41111111-1111-1111-1111-111111111111', 'MIL-CHA-01', '7702002001', 'Champú Bio-Reparador Milagros 500ml', 'Fórmula natural para crecimiento capilar', 45000.00, 21000.00, true),
-    ('62222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222', '41111111-1111-1111-1111-111111111111', 'MIL-MAS-02', '7702002002', 'Mascarilla de Frutas Nutritiva 300g', 'Tratamiento intensivo con aceites', 38000.00, 17500.00, true)
+    ('51111111-1111-1111-1111-111111111111', '11111111-1111-1111-1111-111111111111', '31111111-1111-1111-1111-111111111111', 'MINI-LAC-01', '7701001', 'Leche Entera 1 Litro', 'Leche pasteurizada de bolsa 100% pura', 4200.00, 3100.00, false),
+    ('52222222-2222-2222-2222-222222222222', '11111111-1111-1111-1111-111111111111', '32222222-2222-2222-2222-222222222222', 'MINI-BEB-02', '7701002', 'Gaseosa Coca-Cola 1.5L', 'Bebida refrescante en botella no retornable', 5800.00, 4200.00, false),
+    ('53333333-3333-3333-3333-333333333333', '11111111-1111-1111-1111-111111111111', '33333333-3333-3333-3333-333333333333', 'MINI-ABA-03', '7701003', 'Arroz Diana Roa 1kg', 'Arroz blanco grano seleccionado 1000g', 4600.00, 3400.00, false),
+    ('54444444-4444-4444-4444-444444444444', '11111111-1111-1111-1111-111111111111', '34444444-4444-4444-4444-444444444444', 'MINI-SNA-04', '7701004', 'Papas Margarita Limón 110g', 'Papas fritas crujientes sabor a limón', 3800.00, 2600.00, false)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.inventario_bodega (bodega_id, producto_id, stock_actual, stock_minimo, lote, fecha_vencimiento)
 VALUES
-    ('11111111-1111-1111-1111-111111111111', '51111111-1111-1111-1111-111111111111', 100, 15, 'GENERAL', NULL),
-    ('11111111-1111-1111-1111-111111111111', '52222222-2222-2222-2222-222222222222', 80, 10, 'GENERAL', NULL),
-    ('11111111-1111-1111-1111-111111111111', '53333333-3333-3333-3333-333333333333', 60, 10, 'GENERAL', NULL),
-    ('22222222-2222-2222-2222-222222222222', '61111111-1111-1111-1111-111111111111', 45, 10, 'LOT-2026-08A', '2028-08-31'),
-    ('22222222-2222-2222-2222-222222222222', '62222222-2222-2222-2222-222222222222', 30, 8, 'LOT-2026-08B', '2028-05-15')
+    ('11111111-1111-1111-1111-111111111111', '51111111-1111-1111-1111-111111111111', 150, 20, 'GENERAL', NULL),
+    ('11111111-1111-1111-1111-111111111111', '52222222-2222-2222-2222-222222222222', 90, 15, 'GENERAL', NULL),
+    ('11111111-1111-1111-1111-111111111111', '53333333-3333-3333-3333-333333333333', 200, 25, 'GENERAL', NULL),
+    ('11111111-1111-1111-1111-111111111111', '54444444-4444-4444-4444-444444444444', 80, 15, 'GENERAL', NULL)
 ON CONFLICT (producto_id, lote) DO UPDATE SET stock_actual = EXCLUDED.stock_actual;
-
--- 7. TABLA USUARIOS / PERFILES DE ACCESO
-CREATE TABLE IF NOT EXISTS public.usuarios (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    correo VARCHAR(150) UNIQUE NOT NULL,
-    nombre VARCHAR(150) NOT NULL,
-    rol VARCHAR(30) CHECK (rol IN ('admin', 'nutella', 'milagros')) NOT NULL DEFAULT 'admin',
-    clave_pin VARCHAR(50) DEFAULT '1234',
-    activo BOOLEAN DEFAULT TRUE,
-    fecha_creacion TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-ALTER TABLE public.usuarios ENABLE ROW LEVEL SECURITY;
-
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Permitir lectura publica de usuarios') THEN
-        CREATE POLICY "Permitir lectura publica de usuarios" ON public.usuarios FOR SELECT USING (true);
-    END IF;
-END $$;
-
-INSERT INTO public.usuarios (id, correo, nombre, rol, clave_pin)
-VALUES
-    ('99999999-9999-9999-9999-999999999999', 'admin@cafeymilagros.com', 'Administrador General', 'admin', '1234'),
-    ('88888888-8888-8888-8888-888888888888', 'nutella@cafeymilagros.com', 'Cajero Nutella', 'nutella', '1234'),
-    ('77777777-7777-7777-7777-777777777777', 'milagros@cafeymilagros.com', 'Cajero Milagros', 'milagros', '1234')
-ON CONFLICT (id) DO NOTHING;
-
