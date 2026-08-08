@@ -2,53 +2,49 @@
 
 import { useState, useEffect } from 'react';
 import { 
-  Receipt, Calendar, Filter, RefreshCw, Eye, CheckCircle2, XCircle, Search, Store, CreditCard, Banknote
+  Receipt, RefreshCw, Eye, CheckCircle2, Search, Store, CreditCard, Banknote, Zap, X
 } from 'lucide-react';
-import { obtenerHistorialVentas, obtenerBodegas } from '@/lib/serviciosSupabase';
+import { obtenerHistorialVentas } from '@/lib/serviciosSupabase';
 
-// Datos de demostración
-const VENTAS_PRUEBA = [
+// Historial de prueba por defecto
+const VENTAS_MINIMARKET_PRUEBA = [
   {
     id: 'v1',
-    numero_factura: 'FAC-CAF-839201',
-    bodegas: { nombre: 'Cafetería Central', tipo: 'cafeteria' },
-    cliente_nombre: 'Cliente Cafetería',
+    numero_factura: 'FAC-MINI-001024',
+    cliente_nombre: 'Cliente Minimarket',
     metodo_pago: 'efectivo',
-    subtotal: 12000,
-    impuesto: 960,
-    total: 12960,
+    subtotal: 10000,
+    impuesto: 800,
+    total: 10800,
     estado: 'completada',
     fecha_venta: new Date().toISOString(),
     detalles_venta: [
-      { id: 'd1', cantidad: 2, precio_unitario: 5500, subtotal: 11000, productos: { nombre: 'Café Nutella' } },
-      { id: 'd2', cantidad: 1, precio_unitario: 3000, subtotal: 3000, productos: { nombre: 'Agua Manantial' } }
+      { id: 'd1', cantidad: 2, precio_unitario: 4200, subtotal: 8400, productos: { nombre: 'Leche Entera 1 Litro' } },
+      { id: 'd2', cantidad: 1, precio_unitario: 2400, subtotal: 2400, productos: { nombre: 'Pan Tajado Bimbo' } }
     ]
   },
   {
     id: 'v2',
-    numero_factura: 'FAC-MIL-940283',
-    bodegas: { nombre: 'Tienda Productos Milagros', tipo: 'milagros' },
-    cliente_nombre: 'Cliente Catálogo Belleza',
+    numero_factura: 'FAC-MINI-001025',
+    cliente_nombre: 'Cliente Minimarket',
     metodo_pago: 'tarjeta',
-    subtotal: 83000,
-    impuesto: 15770,
-    total: 98770,
+    subtotal: 24300,
+    impuesto: 1944,
+    total: 26244,
     estado: 'completada',
     fecha_venta: new Date(Date.now() - 3600000).toISOString(),
     detalles_venta: [
-      { id: 'd3', cantidad: 1, precio_unitario: 45000, subtotal: 45000, productos: { nombre: 'Champú Bio-Reparador Milagros 500ml' } },
-      { id: 'd4', cantidad: 1, precio_unitario: 38000, subtotal: 38000, productos: { nombre: 'Mascarilla de Frutas Nutritiva 300g' } }
+      { id: 'd3', cantidad: 2, precio_unitario: 5800, subtotal: 11600, productos: { nombre: 'Gaseosa Coca-Cola 1.5L' } },
+      { id: 'd4', cantidad: 1, precio_unitario: 14500, subtotal: 14500, productos: { nombre: 'Aceite de Girasol Gourmet 900ml' } }
     ]
   }
 ];
 
 /**
- * Módulo de Historial de Ventas y Facturación Multisucursal
+ * Módulo de Historial de Ventas y Facturación de Minimarket
  */
 export default function PaginaHistorialVentas() {
-  const [ventas, setVentas] = useState(VENTAS_PRUEBA);
-  const [bodegas, setBodegas] = useState([]);
-  const [bodegaFiltro, setBodegaFiltro] = useState('todas');
+  const [ventas, setVentas] = useState(VENTAS_MINIMARKET_PRUEBA);
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
   const [ventaDetalle, setVentaDetalle] = useState(null);
@@ -60,11 +56,8 @@ export default function PaginaHistorialVentas() {
   const cargarHistorial = async () => {
     setCargando(true);
     try {
-      const bds = await obtenerBodegas();
-      setBodegas(bds);
-
       const listaVentas = await obtenerHistorialVentas();
-      if (listaVentas.length > 0) {
+      if (listaVentas && listaVentas.length > 0) {
         setVentas(listaVentas);
       }
     } catch (error) {
@@ -74,135 +67,107 @@ export default function PaginaHistorialVentas() {
     }
   };
 
-  // Filtrado de ventas
+  // Filtrado por número de factura o cliente
   const ventasFiltradas = ventas.filter(v => {
-    const coincideBodega = bodegaFiltro === 'todas' || v.bodegas?.tipo === bodegaFiltro || v.bodega_id === bodegaFiltro;
-    const coincideBusqueda = v.numero_factura.toLowerCase().includes(busqueda.toLowerCase()) || 
-                            (v.cliente_nombre && v.cliente_nombre.toLowerCase().includes(busqueda.toLowerCase()));
-    return coincideBodega && coincideBusqueda;
+    const busq = busqueda.toLowerCase().trim();
+    return !busq || 
+      v.numero_factura.toLowerCase().includes(busq) || 
+      (v.cliente_nombre && v.cliente_nombre.toLowerCase().includes(busq));
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto antialiased">
       
-      {/* Encabezado */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-stone-200">
+      {/* Encabezado Principal */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Historial de Ventas & Facturación</h1>
-          <p className="text-xs text-stone-500 font-medium">Registro de comprobantes emitidos por sucursal</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <Receipt className="w-6 h-6 text-emerald-600" />
+            <span>Historial de Ventas — Minimarket</span>
+          </h1>
+          <p className="text-xs text-slate-500 font-medium">Registro general de facturación y recibos emitidos</p>
         </div>
 
-        <button 
+        <button
           onClick={cargarHistorial}
-          className="p-2.5 rounded-xl bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors"
-          title="Recargar ventas"
+          disabled={cargando}
+          className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors text-xs font-semibold flex items-center gap-1.5"
         >
-          <RefreshCw className={`w-4 h-4 ${cargando ? 'animate-spin' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${cargando ? 'animate-spin text-emerald-600' : ''}`} />
+          <span>Actualizar</span>
         </button>
       </div>
 
-      {/* Filtros */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
-        <div className="relative flex-1 min-w-[240px]">
-          <input 
-            type="text" 
+      {/* Barra de Búsqueda */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+        <div className="relative flex-1">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+          <input
+            type="text"
+            placeholder="Buscar por número de factura o cliente..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por # Factura o Nombre de Cliente..." 
-            className="w-full pl-9 pr-4 py-2 border border-stone-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-xs"
           />
-          <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-3" />
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-stone-500 font-semibold">Filtrar Sucursal:</span>
-          <select
-            value={bodegaFiltro}
-            onChange={(e) => setBodegaFiltro(e.target.value)}
-            className="px-3 py-2 bg-stone-50 border border-stone-300 rounded-xl text-xs font-semibold text-stone-800 outline-none"
-          >
-            <option value="todas">Todas las Sucursales</option>
-            <option value="cafeteria">Cafetería</option>
-            <option value="milagros">Tienda Productos Milagros</option>
-          </select>
         </div>
       </div>
 
-      {/* Tabla de Historial */}
-      <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+      {/* Tabla de Ventas */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-stone-50 border-b border-stone-200 text-[11px] font-bold uppercase tracking-wider text-stone-500">
-                <th className="py-3.5 px-4">Factura / Ticket</th>
-                <th className="py-3.5 px-4">Sucursal</th>
-                <th className="py-3.5 px-4">Fecha y Hora</th>
-                <th className="py-3.5 px-4">Método Pago</th>
-                <th className="py-3.5 px-4 text-right">Total</th>
-                <th className="py-3.5 px-4 text-center">Estado</th>
-                <th className="py-3.5 px-4 text-right">Detalles</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+                <th className="py-3 px-4">Factura N°</th>
+                <th className="py-3 px-4">Fecha & Hora</th>
+                <th className="py-3 px-4">Cliente</th>
+                <th className="py-3 px-4">Método de Pago</th>
+                <th className="py-3 px-4 text-right">Total ($)</th>
+                <th className="py-3 px-4 text-center">Estado</th>
+                <th className="py-3 px-4 text-right">Detalle</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100 text-xs">
+            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
               {ventasFiltradas.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-stone-400">
-                    No se encontraron transacciones registradas.
+                  <td colSpan="7" className="py-8 text-center text-slate-400">
+                    No se encontraron facturas registradas.
                   </td>
                 </tr>
               ) : (
-                ventasFiltradas.map(v => {
-                  const esCafeteria = v.bodegas?.tipo === 'cafeteria';
-
-                  return (
-                    <tr key={v.id} className="hover:bg-stone-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-bold text-stone-900">
-                        {v.numero_factura}
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                          esCafeteria ? 'bg-amber-100 text-amber-900' : 'bg-rose-100 text-rose-900'
-                        }`}>
-                          <Store className="w-3 h-3" />
-                          <span>{v.bodegas?.nombre || (esCafeteria ? 'Cafetería' : 'Milagros')}</span>
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-stone-500 font-medium">
-                        {new Date(v.fecha_venta).toLocaleString('es-CO')}
-                      </td>
-
-                      <td className="py-3.5 px-4 capitalize font-semibold text-stone-700">
-                        <div className="flex items-center gap-1.5">
-                          {v.metodo_pago === 'tarjeta' ? <CreditCard className="w-3.5 h-3.5 text-stone-400" /> : <Banknote className="w-3.5 h-3.5 text-stone-400" />}
-                          <span>{v.metodo_pago}</span>
-                        </div>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right font-extrabold text-stone-900 text-sm">
-                        ${v.total.toLocaleString('es-CO')}
-                      </td>
-
-                      <td className="py-3.5 px-4 text-center">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                          <CheckCircle2 className="w-3 h-3" />
-                          Completada
-                        </span>
-                      </td>
-
-                      <td className="py-3.5 px-4 text-right">
-                        <button
-                          onClick={() => setVentaDetalle(v)}
-                          className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold rounded-lg text-xs transition-colors inline-flex items-center gap-1"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>Ver</span>
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })
+                ventasFiltradas.map((v) => (
+                  <tr key={v.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3 px-4 font-bold text-slate-900 font-mono">
+                      {v.numero_factura}
+                    </td>
+                    <td className="py-3 px-4 text-slate-500 font-mono text-[11px]">
+                      {new Date(v.fecha_venta).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })}
+                    </td>
+                    <td className="py-3 px-4">
+                      {v.cliente_nombre || 'Cliente Minimarket'}
+                    </td>
+                    <td className="py-3 px-4 uppercase text-[11px] font-bold text-slate-600">
+                      {v.metodo_pago}
+                    </td>
+                    <td className="py-3 px-4 text-right font-black text-slate-900">
+                      ${v.total?.toLocaleString('es-CO')}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                        Completada
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <button
+                        onClick={() => setVentaDetalle(v)}
+                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors font-semibold inline-flex items-center gap-1 text-[11px]"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Ver Factura</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
@@ -211,63 +176,40 @@ export default function PaginaHistorialVentas() {
 
       {/* Modal Detalle de Factura */}
       {ventaDetalle && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b pb-3">
-              <div>
-                <h3 className="font-bold text-stone-900 text-lg">Comprobante de Venta</h3>
-                <p className="text-xs text-stone-500">{ventaDetalle.numero_factura}</p>
-              </div>
-              <button onClick={() => setVentaDetalle(null)} className="text-stone-400 hover:text-stone-700">
-                <XCircle className="w-5 h-5" />
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-sm">Detalle de Factura</h3>
+              <button onClick={() => setVentaDetalle(null)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-2 text-xs text-stone-600">
-              <div className="flex justify-between">
-                <span>Sucursal:</span>
-                <span className="font-bold text-stone-900">{ventaDetalle.bodegas?.nombre || 'General'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Fecha:</span>
-                <span>{new Date(ventaDetalle.fecha_venta).toLocaleString('es-CO')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Método de Pago:</span>
-                <span className="capitalize font-semibold text-stone-800">{ventaDetalle.metodo_pago}</span>
-              </div>
+            <div className="space-y-1 font-mono text-xs text-slate-600">
+              <p className="font-bold text-slate-900">{ventaDetalle.numero_factura}</p>
+              <p>Fecha: {new Date(ventaDetalle.fecha_venta).toLocaleString()}</p>
+              <p>Pago: <span className="uppercase font-bold">{ventaDetalle.metodo_pago}</span></p>
             </div>
 
-            <div className="border-t border-b border-stone-200 py-3 space-y-2 text-xs">
-              <p className="font-bold text-stone-800 mb-1">Ítems Vendidos:</p>
-              {ventaDetalle.detalles_venta?.map((d, idx) => (
-                <div key={idx} className="flex justify-between text-stone-700">
-                  <span>{d.cantidad}x {d.productos?.nombre || 'Producto'}</span>
-                  <span className="font-bold">${d.subtotal.toLocaleString('es-CO')}</span>
+            <div className="border-t border-b border-slate-100 py-2 space-y-1 text-xs">
+              {ventaDetalle.detalles_venta?.map((it, idx) => (
+                <div key={idx} className="flex justify-between text-slate-700">
+                  <span>{it.cantidad}x {it.productos?.nombre || 'Producto'}</span>
+                  <span className="font-bold">${it.subtotal?.toLocaleString('es-CO')}</span>
                 </div>
               ))}
             </div>
 
-            <div className="space-y-1 text-xs text-stone-600">
-              <div className="flex justify-between">
-                <span>Subtotal:</span>
-                <span>${ventaDetalle.subtotal.toLocaleString('es-CO')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Impuesto:</span>
-                <span>${ventaDetalle.impuesto.toLocaleString('es-CO')}</span>
-              </div>
-              <div className="flex justify-between text-base font-extrabold text-stone-900 pt-1 border-t">
-                <span>TOTAL:</span>
-                <span>${ventaDetalle.total.toLocaleString('es-CO')}</span>
-              </div>
+            <div className="flex justify-between text-sm font-black text-slate-900 pt-1">
+              <span>TOTAL FACTURA:</span>
+              <span className="text-emerald-700">${ventaDetalle.total?.toLocaleString('es-CO')}</span>
             </div>
 
             <button
               onClick={() => setVentaDetalle(null)}
-              className="w-full py-2.5 rounded-xl bg-stone-900 text-white font-bold text-xs"
+              className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs"
             >
-              Cerrar Comprobante
+              Cerrar
             </button>
           </div>
         </div>

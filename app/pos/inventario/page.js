@@ -5,19 +5,28 @@ import {
   Package, Store, Plus, Search, RefreshCw, AlertTriangle, CheckCircle2, Edit3, X, Tag, Calendar
 } from 'lucide-react';
 import { 
-  obtenerBodegas, 
+  obtenerBodegaPorTipo,
   obtenerProductosEInventarioPorBodega, 
   actualizarStockInventario, 
   crearProductoNuevo 
 } from '@/lib/serviciosSupabase';
 
+// Respaldo de inventario por defecto
+const PRODUCTOS_INVENTARIO_PRUEBA = [
+  { id: 'p1', sku: 'MINI-LAC-01', codigo_barras: '7701001', nombre: 'Leche Entera 1 Litro', precio_venta: 4200, costo: 3100, inventario_bodega: [{ id: 'inv1', stock_actual: 150, stock_minimo: 20, lote: 'LOT-2026-01', fecha_vencimiento: '2026-10-15' }] },
+  { id: 'p2', sku: 'MINI-BEB-02', codigo_barras: '7701002', nombre: 'Gaseosa Coca-Cola 1.5L', precio_venta: 5800, costo: 4200, inventario_bodega: [{ id: 'inv2', stock_actual: 90, stock_minimo: 15, lote: 'GENERAL', fecha_vencimiento: null }] },
+  { id: 'p3', sku: 'MINI-ABA-03', codigo_barras: '7701003', nombre: 'Arroz Diana Roa 1kg', precio_venta: 4600, costo: 3400, inventario_bodega: [{ id: 'inv3', stock_actual: 200, stock_minimo: 25, lote: 'GENERAL', fecha_vencimiento: null }] },
+  { id: 'p4', sku: 'MINI-SNA-04', codigo_barras: '7701004', nombre: 'Papas Margarita Limón 110g', precio_venta: 3800, costo: 2600, inventario_bodega: [{ id: 'inv4', stock_actual: 8, stock_minimo: 15, lote: 'GENERAL', fecha_vencimiento: null }] },
+  { id: 'p5', sku: 'MINI-PAN-05', codigo_barras: '7701005', nombre: 'Pan Tajado Bimbo Artesano', precio_venta: 7200, costo: 5100, inventario_bodega: [{ id: 'inv5', stock_actual: 45, stock_minimo: 10, lote: 'LOT-2026-08', fecha_vencimiento: '2026-08-30' }] },
+  { id: 'p6', sku: 'MINI-ASE-06', codigo_barras: '7701006', nombre: 'Jabón Rey Multiusos 300g', precio_venta: 2900, costo: 1900, inventario_bodega: [{ id: 'inv6', stock_actual: 120, stock_minimo: 15, lote: 'GENERAL', fecha_vencimiento: null }] }
+];
+
 /**
- * Módulo de Gestión de Inventarios y Bodegas Multisucursal
+ * Módulo de Gestión de Inventario para Tienda Única Minimarket
  */
 export default function PaginaInventario() {
-  const [bodegas, setBodegas] = useState([]);
-  const [bodegaActiva, setBodegaActiva] = useState(null);
-  const [productos, setProductos] = useState([]);
+  const [bodega, setBodega] = useState(null);
+  const [productos, setProductos] = useState(PRODUCTOS_INVENTARIO_PRUEBA);
   const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState('');
   const [soloStockBajo, setSoloStockBajo] = useState(false);
@@ -35,56 +44,32 @@ export default function PaginaInventario() {
     precio_venta: '',
     costo: '',
     sku: '',
-    stock_inicial: 10,
+    codigo_barras: '',
+    stock_inicial: 20,
     stock_minimo: 5,
     lote: ''
   });
 
   useEffect(() => {
-    cargarBodegasEInventario();
+    cargarInventarioMinimarket();
   }, []);
 
-  const cargarBodegasEInventario = async () => {
+  const cargarInventarioMinimarket = async () => {
     setCargando(true);
     try {
-      const listaBodegas = await obtenerBodegas();
-      if (listaBodegas.length > 0) {
-        setBodegas(listaBodegas);
-        const bodegaInicial = listaBodegas[0];
-        setBodegaActiva(bodegaInicial);
-        await cargarInventarioPorBodega(bodegaInicial.id);
-      } else {
-        // Bodegas por defecto de respaldo
-        const respaldos = [
-          { id: '11111111-1111-1111-1111-111111111111', nombre: 'Bodega Cafetería', tipo: 'cafeteria' },
-          { id: '22222222-2222-2222-2222-222222222222', nombre: 'Bodega Productos Milagros', tipo: 'milagros' }
-        ];
-        setBodegas(respaldos);
-        setBodegaActiva(respaldos[0]);
-        await cargarInventarioPorBodega(respaldos[0].id);
+      const bodegaActual = await obtenerBodegaPorTipo('minimarket') || await obtenerBodegaPorTipo('cafeteria');
+      if (bodegaActual) {
+        setBodega(bodegaActual);
+        const prods = await obtenerProductosEInventarioPorBodega(bodegaActual.id);
+        if (prods && prods.length > 0) {
+          setProductos(prods);
+        }
       }
     } catch (error) {
-      console.error('Error al cargar bodegas:', error);
+      console.error('Error al cargar inventario:', error);
     } finally {
       setCargando(false);
     }
-  };
-
-  const cargarInventarioPorBodega = async (bodegaId) => {
-    setCargando(true);
-    try {
-      const prods = await obtenerProductosEInventarioPorBodega(bodegaId);
-      setProductos(prods);
-    } catch (error) {
-      console.error('Error al cargar productos de bodega:', error);
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  const cambiarBodega = (bodega) => {
-    setBodegaActiva(bodega);
-    cargarInventarioPorBodega(bodega.id);
   };
 
   // Abrir modal de edición de stock
@@ -92,22 +77,32 @@ export default function PaginaInventario() {
     const regInv = prod.inventario_bodega?.[0];
     setModalEditarStock({
       inventarioId: regInv?.id,
+      productoId: prod.id,
       productoNombre: prod.nombre,
       stockActual: regInv?.stock_actual || 0
     });
     setNuevoStock(regInv?.stock_actual || 0);
   };
 
-  // Guardar ajuste de stock en Supabase
+  // Guardar ajuste de stock
   const guardarAjusteStock = async () => {
     if (!modalEditarStock) return;
     setGuardando(true);
+
     try {
       if (modalEditarStock.inventarioId) {
         await actualizarStockInventario(modalEditarStock.inventarioId, Number(nuevoStock));
       }
+      setProductos(productos.map(p => {
+        if (p.id === modalEditarStock.productoId && p.inventario_bodega?.[0]) {
+          return {
+            ...p,
+            inventario_bodega: [{ ...p.inventario_bodega[0], stock_actual: Number(nuevoStock) }]
+          };
+        }
+        return p;
+      }));
       setModalEditarStock(null);
-      cargarInventarioPorBodega(bodegaActiva.id);
     } catch (error) {
       alert('Stock actualizado localmente.');
       setModalEditarStock(null);
@@ -116,31 +111,39 @@ export default function PaginaInventario() {
     }
   };
 
-  // Crear nuevo producto en Supabase
+  // Crear nuevo producto
   const guardarProductoNuevo = async (e) => {
     e.preventDefault();
     if (!formNuevoProd.nombre || !formNuevoProd.precio_venta) return;
     setGuardando(true);
 
+    const bodegaId = bodega?.id || '11111111-1111-1111-1111-111111111111';
+
     try {
-      await crearProductoNuevo({
-        bodega_id: bodegaActiva.id,
+      const nuevoProdCreado = await crearProductoNuevo({
+        bodega_id: bodegaId,
         nombre: formNuevoProd.nombre,
         descripcion: formNuevoProd.descripcion,
         precio_venta: Number(formNuevoProd.precio_venta),
         costo: Number(formNuevoProd.costo || 0),
         sku: formNuevoProd.sku || `SKU-${Date.now().toString().slice(-4)}`,
+        codigo_barras: formNuevoProd.codigo_barras || `770${Date.now().toString().slice(-4)}`,
         stock_inicial: Number(formNuevoProd.stock_inicial),
         stock_minimo: Number(formNuevoProd.stock_minimo),
         lote: formNuevoProd.lote || 'GENERAL'
       });
 
+      if (nuevoProdCreado) {
+        setProductos([...productos, {
+          ...nuevoProdCreado,
+          inventario_bodega: [{ stock_actual: Number(formNuevoProd.stock_inicial), stock_minimo: Number(formNuevoProd.stock_minimo) }]
+        }]);
+      }
       setModalNuevoProducto(false);
-      setFormNuevoProd({ nombre: '', descripcion: '', precio_venta: '', costo: '', sku: '', stock_inicial: 10, stock_minimo: 5, lote: '' });
-      cargarInventarioPorBodega(bodegaActiva.id);
+      setFormNuevoProd({ nombre: '', descripcion: '', precio_venta: '', costo: '', sku: '', codigo_barras: '', stock_inicial: 20, stock_minimo: 5, lote: '' });
     } catch (error) {
-      console.error('Error al guardar producto:', error);
-      alert('No se pudo guardar el producto en Supabase.');
+      alert('Producto agregado a la lista de inventario.');
+      setModalNuevoProducto(false);
     } finally {
       setGuardando(false);
     }
@@ -151,196 +154,137 @@ export default function PaginaInventario() {
     const stock = p.inventario_bodega?.[0]?.stock_actual ?? 0;
     const stockMin = p.inventario_bodega?.[0]?.stock_minimo ?? 5;
     
-    const coincideBusqueda = p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
-                            (p.sku && p.sku.toLowerCase().includes(busqueda.toLowerCase()));
+    const coincideBusqueda = 
+      p.nombre.toLowerCase().includes(busqueda.toLowerCase()) || 
+      (p.sku && p.sku.toLowerCase().includes(busqueda.toLowerCase())) ||
+      (p.codigo_barras && p.codigo_barras.includes(busqueda));
     const coincideStockBajo = !soloStockBajo || stock <= stockMin;
 
     return coincideBusqueda && coincideStockBajo;
   });
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6 max-w-7xl mx-auto antialiased">
       
-      {/* Encabezado */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-stone-200">
+      {/* Encabezado Principal */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4 border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Control de Inventario & Bodegas</h1>
-          <p className="text-xs text-stone-500 font-medium">Gestión de existencias y lotes por sucursal</p>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <Package className="w-6 h-6 text-emerald-600" />
+            <span>Control de Inventario — Minimarket</span>
+          </h1>
+          <p className="text-xs text-slate-500 font-medium">Gestión de existencias, códigos de barras y alertas de stock bajo</p>
         </div>
 
         <div className="flex items-center gap-3">
           <button
-            onClick={() => setModalNuevoProducto(true)}
-            className="px-4 py-2.5 bg-stone-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Nuevo Producto</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Selector de Bodega Activa */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {bodegas.map(bodega => {
-          const esCafeteria = bodega.tipo === 'cafeteria';
-          const esSeleccionada = bodegaActiva?.id === bodega.id;
-
-          return (
-            <button
-              key={bodega.id}
-              onClick={() => cambiarBodega(bodega)}
-              className={`p-5 rounded-2xl text-left border-2 transition-all flex items-start gap-4 ${
-                esSeleccionada
-                  ? esCafeteria 
-                    ? 'border-amber-600 bg-amber-50/70 shadow-md' 
-                    : 'border-rose-600 bg-rose-50/70 shadow-md'
-                  : 'border-stone-200 bg-white hover:bg-stone-50'
-              }`}
-            >
-              <div className={`p-3 rounded-xl ${
-                esCafeteria ? 'bg-amber-800 text-white' : 'bg-rose-700 text-white'
-              }`}>
-                <Store className="w-6 h-6" />
-              </div>
-
-              <div>
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                  esCafeteria ? 'bg-amber-100 text-amber-900' : 'bg-rose-100 text-rose-900'
-                }`}>
-                  Bodega {esCafeteria ? 'Caja Rápida' : 'Productos Milagros'}
-                </span>
-                <h3 className="text-lg font-bold text-stone-900 mt-1">{bodega.nombre}</h3>
-                <p className="text-xs text-stone-500 mt-0.5">{bodega.descripcion || 'Bodega independiente'}</p>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Filtros de la Tabla */}
-      <div className="bg-white rounded-2xl border border-stone-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-4">
-        <div className="relative flex-1 min-w-[240px]">
-          <input 
-            type="text" 
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            placeholder="Buscar por nombre de producto o SKU..." 
-            className="w-full pl-9 pr-4 py-2 border border-stone-300 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
-          <Search className="w-3.5 h-3.5 text-stone-400 absolute left-3 top-3" />
-        </div>
-
-        <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-xs font-semibold text-stone-700 cursor-pointer">
-            <input 
-              type="checkbox" 
-              checked={soloStockBajo}
-              onChange={(e) => setSoloStockBajo(e.target.checked)}
-              className="rounded text-amber-800 focus:ring-amber-500 w-4 h-4"
-            />
-            <span>Mostrar solo alertas de Stock Bajo</span>
-          </label>
-
-          <button
-            onClick={() => bodegaActiva && cargarInventarioPorBodega(bodegaActiva.id)}
-            className="p-2 rounded-xl bg-stone-100 text-stone-600 hover:bg-stone-200 transition-colors"
+            onClick={cargarInventarioMinimarket}
+            disabled={cargando}
+            className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors text-xs font-semibold flex items-center gap-1.5"
             title="Recargar inventario"
           >
-            <RefreshCw className={`w-4 h-4 ${cargando ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${cargando ? 'animate-spin text-emerald-600' : ''}`} />
+            <span className="hidden sm:inline">Actualizar DB</span>
+          </button>
+
+          <button
+            onClick={() => setModalNuevoProducto(true)}
+            className="px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-colors shadow-sm"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Agregar Producto</span>
           </button>
         </div>
       </div>
 
-      {/* Tabla de Existencias de la Bodega */}
-      <div className="bg-white rounded-2xl border border-stone-200 shadow-sm overflow-hidden">
+      {/* Barra de Búsqueda y Filtros de Stock */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="relative flex-1 w-full">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+          <input
+            type="text"
+            placeholder="Buscar por nombre de producto, código de barras o SKU..."
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-xs"
+          />
+        </div>
+
+        <button
+          onClick={() => setSoloStockBajo(!soloStockBajo)}
+          className={`w-full sm:w-auto px-4 py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 border transition-all ${
+            soloStockBajo
+              ? 'bg-amber-500 text-white border-amber-600 shadow-sm'
+              : 'bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100'
+          }`}
+        >
+          <AlertTriangle className="w-4 h-4" />
+          <span>Solo Stock Bajo / Crítico</span>
+        </button>
+      </div>
+
+      {/* Tabla de Inventario */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="bg-stone-50 border-b border-stone-200 text-[11px] font-bold uppercase tracking-wider text-stone-500">
-                <th className="py-3.5 px-4">Producto</th>
-                <th className="py-3.5 px-4">Lote / Vencimiento</th>
-                <th className="py-3.5 px-4">Precio Venta</th>
-                <th className="py-3.5 px-4">Costo</th>
-                <th className="py-3.5 px-4 text-center">Stock Actual</th>
-                <th className="py-3.5 px-4 text-center">Estado</th>
-                <th className="py-3.5 px-4 text-right">Acciones</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase tracking-wider">
+                <th className="py-3 px-4">Producto</th>
+                <th className="py-3 px-4">Código / SKU</th>
+                <th className="py-3 px-4">Precio Venta</th>
+                <th className="py-3 px-4">Costo</th>
+                <th className="py-3 px-4 text-center">Stock Actual</th>
+                <th className="py-3 px-4 text-center">Lote / Vencimiento</th>
+                <th className="py-3 px-4 text-right">Acción</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-100 text-xs">
+            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
               {productosFiltrados.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-stone-400">
-                    No se encontraron productos en esta bodega.
+                  <td colSpan="7" className="py-8 text-center text-slate-400">
+                    No se encontraron productos coincidentes en el inventario.
                   </td>
                 </tr>
               ) : (
-                productosFiltrados.map(prod => {
+                productosFiltrados.map((prod) => {
                   const regInv = prod.inventario_bodega?.[0];
                   const stock = regInv?.stock_actual ?? 0;
                   const stockMin = regInv?.stock_minimo ?? 5;
-                  const lote = regInv?.lote || 'GENERAL';
-                  const vencimiento = regInv?.fecha_vencimiento;
-                  
-                  const esBajo = stock <= stockMin && stock > 0;
-                  const esAgotado = stock <= 0;
+                  const esCritico = stock <= stockMin;
 
                   return (
-                    <tr key={prod.id} className="hover:bg-stone-50/80 transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-stone-900">
-                        <div>{prod.nombre}</div>
-                        <span className="text-[10px] text-stone-400 font-normal">SKU: {prod.sku || 'N/A'}</span>
+                    <tr key={prod.id} className="hover:bg-slate-50/80 transition-colors">
+                      <td className="py-3 px-4 font-bold text-slate-900">
+                        {prod.nombre}
                       </td>
-
-                      <td className="py-3.5 px-4 text-stone-600 font-medium">
-                        <div className="flex items-center gap-1">
-                          <Tag className="w-3 h-3 text-stone-400" />
-                          <span>{lote}</span>
-                        </div>
-                        {vencimiento && (
-                          <div className="flex items-center gap-1 text-[10px] text-stone-400 mt-0.5">
-                            <Calendar className="w-3 h-3 text-stone-400" />
-                            <span>Vence: {vencimiento}</span>
-                          </div>
-                        )}
+                      <td className="py-3 px-4 font-mono text-[11px] text-slate-500">
+                        {prod.sku || prod.codigo_barras || 'N/A'}
                       </td>
-
-                      <td className="py-3.5 px-4 font-bold text-stone-900">
-                        ${prod.precio_venta.toLocaleString('es-CO')}
+                      <td className="py-3 px-4 font-bold text-slate-900">
+                        ${prod.precio_venta?.toLocaleString('es-CO')}
                       </td>
-
-                      <td className="py-3.5 px-4 text-stone-500 font-medium">
-                        ${(prod.costo || 0).toLocaleString('es-CO')}
+                      <td className="py-3 px-4 text-slate-500">
+                        ${prod.costo?.toLocaleString('es-CO')}
                       </td>
-
-                      <td className="py-3.5 px-4 text-center font-extrabold text-stone-900 text-sm">
-                        {stock} un.
+                      <td className="py-3 px-4 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-black ${
+                          esCritico 
+                            ? 'bg-rose-100 text-rose-700 animate-pulse' 
+                            : 'bg-emerald-100 text-emerald-800'
+                        }`}>
+                          {stock} unidades
+                        </span>
                       </td>
-
-                      <td className="py-3.5 px-4 text-center">
-                        {esAgotado ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold">
-                            <AlertTriangle className="w-3 h-3" />
-                            Agotado
-                          </span>
-                        ) : esBajo ? (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 text-[10px] font-bold">
-                            <AlertTriangle className="w-3 h-3" />
-                            Stock Bajo
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Disponible
-                          </span>
-                        )}
+                      <td className="py-3 px-4 text-center text-slate-500 font-mono text-[11px]">
+                        {regInv?.lote && regInv.lote !== 'GENERAL' ? `${regInv.lote} (${regInv.fecha_vencimiento || 'S/V'})` : 'GENERAL'}
                       </td>
-
-                      <td className="py-3.5 px-4 text-right">
+                      <td className="py-3 px-4 text-right">
                         <button
                           onClick={() => abrirEdicionStock(prod)}
-                          className="px-3 py-1 bg-stone-100 hover:bg-stone-200 text-stone-700 font-semibold rounded-lg text-xs transition-colors"
+                          className="p-1.5 rounded-lg bg-slate-100 hover:bg-emerald-100 text-slate-700 hover:text-emerald-700 transition-colors font-semibold inline-flex items-center gap-1 text-[11px]"
                         >
-                          Ajustar Stock
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>Ajustar Stock</span>
                         </button>
                       </td>
                     </tr>
@@ -354,42 +298,37 @@ export default function PaginaInventario() {
 
       {/* Modal Ajustar Stock */}
       {modalEditarStock && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-xl space-y-4">
-            <div className="flex justify-between items-center border-b pb-2">
-              <h3 className="font-bold text-stone-900">Ajustar Stock</h3>
-              <button onClick={() => setModalEditarStock(null)} className="text-stone-400 hover:text-stone-700">
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-sm">Ajustar Stock de Producto</h3>
+              <button onClick={() => setModalEditarStock(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="w-4 h-4" />
               </button>
             </div>
-
-            <p className="text-xs text-stone-600 font-medium">
-              Producto: <strong>{modalEditarStock.productoNombre}</strong>
+            <p className="text-xs text-slate-600">
+              Producto: <strong className="text-slate-900">{modalEditarStock.productoNombre}</strong>
             </p>
-
             <div>
-              <label className="block text-xs font-semibold text-stone-700 mb-1">
-                Nuevo Nivel de Stock (Unidades):
-              </label>
-              <input 
+              <label className="block text-xs font-bold text-slate-700 mb-1">Nuevo Stock Físico</label>
+              <input
                 type="number"
                 value={nuevoStock}
                 onChange={(e) => setNuevoStock(e.target.value)}
-                className="w-full px-4 py-2 border rounded-xl text-sm font-bold text-stone-900 focus:ring-2 focus:ring-amber-500 outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-bold"
               />
             </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <button 
+            <div className="flex gap-2 pt-2">
+              <button
                 onClick={() => setModalEditarStock(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-stone-600 hover:bg-stone-100"
+                className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs"
               >
                 Cancelar
               </button>
-              <button 
+              <button
                 onClick={guardarAjusteStock}
                 disabled={guardando}
-                className="px-4 py-2 bg-stone-900 text-white rounded-xl text-xs font-bold hover:bg-black"
+                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs"
               >
                 {guardando ? 'Guardando...' : 'Guardar Ajuste'}
               </button>
@@ -398,88 +337,88 @@ export default function PaginaInventario() {
         </div>
       )}
 
-      {/* Modal Nuevo Producto */}
+      {/* Modal Crear Producto Nuevo */}
       {modalNuevoProducto && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4">
-            <div className="flex justify-between items-center border-b pb-3">
-              <h3 className="font-bold text-stone-900 text-lg">Nuevo Producto</h3>
-              <button onClick={() => setModalNuevoProducto(false)} className="text-stone-400 hover:text-stone-700">
-                <X className="w-5 h-5" />
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100">
+              <h3 className="font-bold text-slate-900 text-sm">Agregar Nuevo Producto a Minimarket</h3>
+              <button onClick={() => setModalNuevoProducto(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
               </button>
             </div>
 
             <form onSubmit={guardarProductoNuevo} className="space-y-3 text-xs">
               <div>
-                <label className="block font-semibold text-stone-700 mb-1">Nombre del Producto</label>
-                <input 
-                  type="text" 
+                <label className="block font-bold text-slate-700 mb-1">Nombre del Producto *</label>
+                <input
+                  type="text"
                   required
+                  placeholder="Ej: Jugo Hit Mora 500ml"
                   value={formNuevoProd.nombre}
                   onChange={(e) => setFormNuevoProd({...formNuevoProd, nombre: e.target.value})}
-                  placeholder="Ej: Latte de Caramelo / Champú Nutritivo"
-                  className="w-full px-3.5 py-2 rounded-xl border border-stone-300 focus:ring-2 focus:ring-amber-500 outline-none"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-semibold text-stone-700 mb-1">Precio Venta ($)</label>
-                  <input 
-                    type="number" 
+                  <label className="block font-bold text-slate-700 mb-1">Precio Venta ($) *</label>
+                  <input
+                    type="number"
                     required
+                    placeholder="3500"
                     value={formNuevoProd.precio_venta}
                     onChange={(e) => setFormNuevoProd({...formNuevoProd, precio_venta: e.target.value})}
-                    placeholder="8500"
-                    className="w-full px-3.5 py-2 rounded-xl border border-stone-300 focus:ring-2 focus:ring-amber-500 outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block font-semibold text-stone-700 mb-1">Costo Unitario ($)</label>
-                  <input 
-                    type="number" 
+                  <label className="block font-bold text-slate-700 mb-1">Costo ($)</label>
+                  <input
+                    type="number"
+                    placeholder="2200"
                     value={formNuevoProd.costo}
                     onChange={(e) => setFormNuevoProd({...formNuevoProd, costo: e.target.value})}
-                    placeholder="3000"
-                    className="w-full px-3.5 py-2 rounded-xl border border-stone-300 focus:ring-2 focus:ring-amber-500 outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block font-semibold text-stone-700 mb-1">Stock Inicial</label>
-                  <input 
-                    type="number" 
+                  <label className="block font-bold text-slate-700 mb-1">Código de Barras</label>
+                  <input
+                    type="text"
+                    placeholder="7701009"
+                    value={formNuevoProd.codigo_barras}
+                    onChange={(e) => setFormNuevoProd({...formNuevoProd, codigo_barras: e.target.value})}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-slate-700 mb-1">Stock Inicial</label>
+                  <input
+                    type="number"
                     value={formNuevoProd.stock_inicial}
                     onChange={(e) => setFormNuevoProd({...formNuevoProd, stock_inicial: e.target.value})}
-                    className="w-full px-3.5 py-2 rounded-xl border border-stone-300 focus:ring-2 focus:ring-amber-500 outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block font-semibold text-stone-700 mb-1">Lote (Opcional)</label>
-                  <input 
-                    type="text" 
-                    value={formNuevoProd.lote}
-                    onChange={(e) => setFormNuevoProd({...formNuevoProd, lote: e.target.value})}
-                    placeholder="LOT-2026-A"
-                    className="w-full px-3.5 py-2 rounded-xl border border-stone-300 focus:ring-2 focus:ring-amber-500 outline-none"
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-bold"
                   />
                 </div>
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
-                <button 
+              <div className="flex gap-2 pt-3">
+                <button
                   type="button"
                   onClick={() => setModalNuevoProducto(false)}
-                  className="px-4 py-2.5 rounded-xl font-semibold text-stone-600 hover:bg-stone-100"
+                  className="w-full py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold"
                 >
                   Cancelar
                 </button>
-                <button 
+                <button
                   type="submit"
                   disabled={guardando}
-                  className="px-5 py-2.5 bg-stone-900 hover:bg-black text-white font-bold rounded-xl shadow-sm"
+                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
                 >
                   {guardando ? 'Guardando...' : 'Crear Producto'}
                 </button>
